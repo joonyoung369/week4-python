@@ -75,12 +75,17 @@ class ForceConverterApp:
 		button_row.pack(pady=(16, 10))
 		ttk.Button(button_row, text="변환", command=self.convert).pack(side="left", padx=4)
 		ttk.Button(button_row, text="초기화", command=self.reset).pack(side="left", padx=4)
+		self.copy_button = ttk.Button(
+			button_row, text="결과 복사", command=self.copy_result, state="disabled"
+		)
+		self.copy_button.pack(side="left", padx=4)
 		self.result_var = tk.StringVar(value="결과가 여기에 표시됩니다.")
 		ttk.Label(main, textvariable=self.result_var, font=("Malgun Gothic", 12, "bold")).pack(
 			pady=4
 		)
 		self.status_var = tk.StringVar()
-		ttk.Label(main, textvariable=self.status_var, foreground="#b00020").pack()
+		self.status_label = ttk.Label(main, textvariable=self.status_var, foreground="#b00020")
+		self.status_label.pack()
 
 		value_entry.bind("<Return>", lambda event: self.convert())
 		value_entry.focus_set()
@@ -91,15 +96,27 @@ class ForceConverterApp:
 			result = convert_force(value, self.from_var.get(), self.to_var.get())
 		except (TypeError, ValueError, OverflowError):
 			self.result_var.set("입력을 확인해 주세요.")
+			self.copy_button.state(["disabled"])
+			self.status_label.configure(foreground="#b00020")
 			self.status_var.set("숫자와 지원 단위를 입력해야 합니다.")
 			return
 
 		self.result_var.set(f"{format_value(result)} {self.to_var.get()}")
+		self.copy_button.state(["!disabled"])
 		self.status_var.set("")
+
+	def copy_result(self):
+		self.root.clipboard_clear()
+		self.root.clipboard_append(self.result_var.get())
+		self.root.update()
+		self.status_label.configure(foreground="#2e7d32")
+		self.status_var.set("결과를 클립보드에 복사했습니다.")
 
 	def reset(self):
 		self.value_var.set("")
 		self.result_var.set("")
+		self.copy_button.state(["disabled"])
+		self.status_label.configure(foreground="#b00020")
 		self.status_var.set("")
 
 
